@@ -7,20 +7,25 @@ import UIKit
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    let controller = window?.rootViewController as! FlutterViewController
-    let channel = FlutterMethodChannel(
-      name: "goal_tracker_accessible/accessibility",
-      binaryMessenger: controller.binaryMessenger
-    )
-    channel.setMethodCallHandler { (call, result) in
-      if call.method == "isScreenReaderEnabled" {
-        result(UIAccessibility.isVoiceOverRunning)
-      } else {
-        result(FlutterMethodNotImplemented)
+    let result = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+
+    // Uses the plugin registrar API (backed directly by the Flutter
+    // engine) instead of window?.rootViewController, which is not
+    // reliably available at this point under Scene-based lifecycle.
+    if let registrar = self.registrar(forPlugin: "AccessibilityChannel") {
+      let channel = FlutterMethodChannel(
+        name: "goal_tracker_accessible/accessibility",
+        binaryMessenger: registrar.messenger()
+      )
+      channel.setMethodCallHandler { (call, result) in
+        if call.method == "isScreenReaderEnabled" {
+          result(UIAccessibility.isVoiceOverRunning)
+        } else {
+          result(FlutterMethodNotImplemented)
+        }
       }
     }
 
-    GeneratedPluginRegistrant.register(with: self)
-    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+    return result
   }
 }
