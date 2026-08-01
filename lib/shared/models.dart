@@ -204,3 +204,23 @@ void updateStepTitle(Step step, String newTitle) {
 void deleteStep(Step step) {
   sampleSteps.removeWhere((s) => s.id == step.id);
 }
+
+/// Fraction (0.0 - 1.0) of a Task's Steps that are completed.
+/// Falls back to the Task's own completed flag if it has no Steps.
+double taskStepProgress(Task task) {
+  final steps = stepsForTask(task.id);
+  if (steps.isEmpty) return isTaskCompleted(task) ? 1.0 : 0.0;
+  final completedCount = steps.where((s) => s.completed).length;
+  return completedCount / steps.length;
+}
+
+/// Fraction (0.0 - 1.0) of a Goal's Steps (across ALL its Tasks) that
+/// are completed. Falls back to the Goal's own completed flag if none
+/// of its Tasks have any Steps yet.
+double goalStepProgress(Goal goal) {
+  final tasks = tasksForGoal(goal.id);
+  final allSteps = tasks.expand((t) => stepsForTask(t.id)).toList();
+  if (allSteps.isEmpty) return isGoalCompleted(goal) ? 1.0 : 0.0;
+  final completedCount = allSteps.where((s) => s.completed).length;
+  return completedCount / allSteps.length;
+}
